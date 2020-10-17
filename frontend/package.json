@@ -12,7 +12,8 @@
 		"react-emoji": "^0.5.0",
 		"react-scripts": "3.4.3",
 		"react-scroll-to-bottom": "^1.2.1-master.5db73ad",
-		"socket.io-client": "^2.3.1"
+		"socket.io-client": "^2.3.1",
+		"uuid": "^8.3.1"
 	},
 	"scripts": {
 		"start": "react-scripts start",
