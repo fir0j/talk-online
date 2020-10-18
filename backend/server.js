@@ -42,10 +42,9 @@ io.on('connection', (socket) => {
 		const user = getUser(socket.id);
 		if (!user) {
 			// used by io server to do something after the message is sent.
-			callback({ serverError: 'error fetching user on' });
+			callback({ serverError: 'error fetching user. received invalid user' });
 		} else {
 			io.to(user.room).emit('chat', { user: user.name, text: payload });
-			io.to(user.room).emit('roomMembers', { room: user.room, users: getUsersOfRoom(user.room) });
 		}
 	});
 

@@ -1,85 +1,51 @@
-import React, { useState, useEffect } from "react";
-import io from "socket.io-client";
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  Redirect,
+} from "react-router-dom";
 import Chatscreen from "./components/Chatscreen.component.jsx";
+import Signin from "./components/Signin.component.jsx";
 
-let socket;
 const App = () => {
-  // http://localhost:3000/?name=firoj&room=web
-  const queryString = require("query-string");
-  const url = queryString.parse(window.location.search);
-  const [name] = useState(url.name);
-  const [room] = useState(url.room);
-
-  const [incoming, setIncoming] = useState("");
-  const [incomings, setIncomings] = useState([]);
-  const [ENDPOINT] = useState("http://localhost:8080");
-
-  // handling 'connection' and 'disconnect' events
-  useEffect(() => {
-    socket = io(ENDPOINT);
-    return () => {
-      socket.emit("disconnect");
-      socket.off();
-    };
-  }, [ENDPOINT]);
-
-  // connecting to the chat server
-  // handling 'join' event
-  useEffect(() => {
-    // socket.emit(event,payload,callback)
-    socket.emit("join", { name, room }, (error) => {
-      console.log(error);
-    });
-
-    socket.on("welcome", (welcomePayload) => {
-      setIncoming(welcomePayload);
-    });
-    socket.on("byebye", (byebyePayload) => {
-      setIncoming(byebyePayload);
-    });
-    socket.on("roomMembers", (roomMembersPayload) => {
-      console.log(roomMembersPayload);
-    });
-  }, [name, room]);
-
-  // receiving received message to the chat server
-  // handling receiving 'chat' event
-  useEffect(
-    () => {
-      socket.on("chat", (incomingChat) => {
-        // currentMessageRef.current = incommingChat;
-        if (incomingChat !== "") {
-          // console.log({ ...incomingChat, id: uuidv4() });
-          setIncoming(incomingChat);
-        }
-        // console.log(incommingChat)
-      });
-    },
-    [incoming]
-    // run this above code only when message changes
-  );
-
-  useEffect(
-    () => {
-      if (incoming === "") {
-        setIncomings([]);
-      } else {
-        setIncomings(incomings.concat(incoming));
-      }
-    },
-    // eslint-disable-next-line
-    [incoming]
-    // run this above code only when message changes
-  );
+  const [name, setName] = useState("");
+  const [room, setRoom] = useState("");
+  const [email, setEmail] = useState("");
+  const [loginStatus, setLoginStatus] = useState(false);
 
   return (
     <div className="App">
-      <Chatscreen
-        incomings={incomings}
-        name={name}
-        room={room}
-        socket={socket}
-      />
+      <Router>
+        <Switch>
+          <Route exact path="/">
+            <Redirect to="/signin" />
+          </Route>
+          <Route exact path="/signin">
+            {loginStatus ? (
+              <Chatscreen
+                name={name}
+                room={room}
+                email={email}
+                setName={setName}
+                setRoom={setRoom}
+                setEmail={setEmail}
+                setLoginStatus={setLoginStatus}
+              />
+            ) : (
+              <Signin
+                name={name}
+                room={room}
+                email={email}
+                setName={setName}
+                setRoom={setRoom}
+                setEmail={setEmail}
+                setLoginStatus={setLoginStatus}
+              />
+            )}
+          </Route>
+        </Switch>
+      </Router>
     </div>
   );
 };

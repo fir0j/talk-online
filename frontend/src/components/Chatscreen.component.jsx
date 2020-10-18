@@ -1,13 +1,91 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import Sendbox from "./Sendbox.component";
+import { Redirect } from "react-router-dom";
 
-function Chatscreen({ incomings, room, name, socket }) {
+let socket;
+function Chatscreen({
+  room,
+  name,
+  email,
+  setName,
+  setRoom,
+  setEmail,
+  setLoginStatus,
+}) {
+  const [ENDPOINT] = useState("http://localhost:8080");
   const messagesEndRef = useRef(null);
+  const [incoming, setIncoming] = useState("");
+  const [incomings, setIncomings] = useState([]);
+
+  // handling 'connection' and 'disconnect' events
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    return () => {
+      socket.emit("disconnect");
+      socket.off();
+    };
+  }, [ENDPOINT]);
+
+  // connecting to the chat server
+  // handling 'join' event
+  useEffect(() => {
+    // socket.emit(event,payload,callback)
+    socket.emit("join", { name, room }, (error) => {
+      console.log(error);
+    });
+
+    socket.on("welcome", (welcomePayload) => {
+      setIncoming(welcomePayload);
+    });
+    socket.on("byebye", (byebyePayload) => {
+      setIncoming(byebyePayload);
+    });
+    socket.on("roomMembers", (roomMembersPayload) => {
+      console.log(roomMembersPayload);
+    });
+    // eslint-disable-next-line
+  }, []);
+
+  // receiving received message to the chat server
+  // handling receiving 'chat' event
+  useEffect(
+    () => {
+      socket.on("chat", (incomingChat) => {
+        setIncoming(incomingChat);
+      });
+    },
+    []
+    // run this above code only when message changes
+  );
+
+  useEffect(
+    () => {
+      if (incoming === "") {
+        setIncomings([]);
+      } else {
+        setIncomings([...incomings, incoming]);
+      }
+    },
+    // eslint-disable-next-line
+    [incoming]
+  );
+
   const scrollToBottom = () => {
     messagesEndRef.current.scrollIntoView();
   };
+
   useEffect(scrollToBottom, [incomings]);
+
+  const logout = () => {
+    setName("");
+    setRoom("");
+    setEmail("");
+    setLoginStatus(false);
+    setIncomings([]);
+    return <Redirect to="/signin" />;
+  };
 
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -24,6 +102,7 @@ function Chatscreen({ incomings, room, name, socket }) {
           style={{
             display: "flex",
             justifyContent: "center",
+
             borderBottom: "1px solid gray",
             backgroundColor: "lightblue",
             position: "sticky",
@@ -31,6 +110,9 @@ function Chatscreen({ incomings, room, name, socket }) {
           }}
         >
           <p>{room}</p>
+          <button style={{ marginLeft: "auto" }} onClick={logout}>
+            logout
+          </button>
         </div>
         <div
           style={{
@@ -73,7 +155,7 @@ function Chatscreen({ incomings, room, name, socket }) {
           })}
           <div ref={messagesEndRef} />
         </div>
-        <Sendbox socket={socket} />
+        {socket && <Sendbox socket={socket} />}
       </div>
     </div>
   );
