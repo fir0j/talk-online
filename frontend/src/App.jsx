@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
 import io from "socket.io-client";
-import Chatscreen from "./components/Chatscreen.component";
+import Chatscreen from "./components/Chatscreen.component.jsx";
 
 let socket;
 const App = () => {
@@ -75,7 +74,6 @@ const App = () => {
 
   return (
     <div className="App">
-      <h1>talk-online</h1>
       <Chatscreen
         incomings={incomings}
         name={name}

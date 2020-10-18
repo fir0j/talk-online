@@ -11,11 +11,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
-.messagesWrapper {
-  display: flex;
-  flex-direction: column;
-  border: 1px black solid;
-  height: 100px;
-  overflow: scroll;
-  margin-top: 1rem;
-}
