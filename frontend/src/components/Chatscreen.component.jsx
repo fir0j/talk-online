@@ -3,6 +3,7 @@ import io from "socket.io-client";
 import { v4 as uuidv4 } from "uuid";
 import Sendbox from "./Sendbox.component";
 import { Redirect } from "react-router-dom";
+import "./chatscreen.component.css";
 
 let socket;
 function Chatscreen({
@@ -18,10 +19,15 @@ function Chatscreen({
   const messagesEndRef = useRef(null);
   const [incoming, setIncoming] = useState("");
   const [incomings, setIncomings] = useState([]);
+  const [status, setStatus] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   // handling 'connection' and 'disconnect' events
   useEffect(() => {
     socket = io(ENDPOINT);
+    if (socket) {
+      setStatus("online");
+    }
     return () => {
       socket.emit("disconnect");
       socket.off();
@@ -43,10 +49,22 @@ function Chatscreen({
       setIncoming(byebyePayload);
     });
     socket.on("roomMembers", (roomMembersPayload) => {
-      console.log(roomMembersPayload);
+      setOnlineUsers(roomMembersPayload.users);
+      console.log(roomMembersPayload.users);
     });
+
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+    socket.on("typing...", (typingPayload) => {
+      setStatus(typingPayload.notification);
+    });
+
+    socket.on("not typing...", () => {
+      if (status !== "online") setStatus(room);
+    });
+  }, [status]);
 
   // receiving received message to the chat server
   // handling receiving 'chat' event
@@ -88,74 +106,52 @@ function Chatscreen({
   };
 
   return (
-    <div style={{ display: "flex", justifyContent: "center" }}>
-      <div
-        style={{
-          position: "relative",
-          border: "2px solid gray",
-          width: "100%",
-          maxWidth: "960px",
-        }}
-      >
-        <center style={{ backgroundColor: "lightskyblue" }}>talk-online</center>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
+    <div className="chat-screen">
+      <div className="chat-screen-wrapper">
+        <div className="group-members">
+          <div>Group Members</div>
+          <div>Online ({onlineUsers.length})</div>
+          <ul>
+            {onlineUsers.map((user) => {
+              return <li>{user.name}</li>;
+            })}
+          </ul>
+        </div>
 
-            borderBottom: "1px solid gray",
-            backgroundColor: "lightblue",
-            position: "sticky",
-            top: "0",
-          }}
-        >
-          <p>{room}</p>
-          <button style={{ marginLeft: "auto" }} onClick={logout}>
-            logout
-          </button>
-        </div>
-        <div
-          style={{
-            overflow: "scroll",
-            height: "200px",
-          }}
-        >
-          {incomings.map((msg, index) => {
-            if (msg.user === name) {
-              return (
-                <div
-                  key={uuidv4()}
-                  style={{
-                    backgroundColor: "lightslategray",
-                    color: "white",
-                  }}
-                >
-                  {msg.user + ":"}
-                  {msg.text}
-                </div>
-              );
-            } else {
-              return (
-                <div
-                  key={uuidv4()}
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    backgroundColor: "lightsteelblue",
-                    color: "white",
-                  }}
-                >
-                  <div>
-                    {msg.user + ":"}
-                    {msg.text}
+        <div className="messages-wrapper">
+          <div className="app-title">
+            <div>TalkOnline</div>
+            <button onClick={logout}>logout</button>
+          </div>
+          <div className="infobar">
+            <p>{status}</p>
+          </div>
+          <div className="messages">
+            {incomings.map((msg, index) => {
+              if (msg.user === name) {
+                return (
+                  <div key={uuidv4()} className="same-user">
+                    <div>
+                      {msg.user + " : "}
+                      {msg.text}
+                    </div>
                   </div>
-                </div>
-              );
-            }
-          })}
-          <div ref={messagesEndRef} />
+                );
+              } else {
+                return (
+                  <div key={uuidv4()} className="other-users">
+                    <div>
+                      {msg.user + " : "}
+                      {msg.text}
+                    </div>
+                  </div>
+                );
+              }
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+          <div className="sendbox">{socket && <Sendbox socket={socket} />}</div>
         </div>
-        {socket && <Sendbox socket={socket} />}
       </div>
     </div>
   );

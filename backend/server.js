@@ -48,6 +48,26 @@ io.on('connection', (socket) => {
 		}
 	});
 
+	socket.on('typing...',(callback)=>{
+		const user = getUser(socket.id);
+		if (!user) {
+			// used by io server to do something after the message is sent.
+			callback({ serverError: 'error fetching user. received invalid user' });
+		} else {
+			io.to(user.room).emit('typing...',{notification:`${user.name} is typing...`});
+		}
+	})
+
+	socket.on('not typing...',(callback)=>{
+		const user = getUser(socket.id);
+		if (!user) {
+			// used by io server to do something after the message is sent.
+			callback({ serverError: 'error fetching user. Maybe invalid user' });
+		} else {
+			io.to(user.room).emit('not typing...');
+		}
+	})
+
 	socket.on('disconnect', () => {
 		const user = removeUser(socket.id);
 		if (user) {

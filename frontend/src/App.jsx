@@ -10,8 +10,8 @@ import Signin from "./components/Signin.component.jsx";
 
 const App = () => {
   const [name, setName] = useState("");
-  const [room, setRoom] = useState("");
-  const [email, setEmail] = useState("");
+  const [room, setRoom] = useState("web");
+  const [email, setEmail] = useState("user@gmail.com");
   const [loginStatus, setLoginStatus] = useState(false);
 
   return (

@@ -1,7 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const Sendbox = ({ socket }) => {
   const [outgoing, setOutgoing] = useState("");
+  // using refs declaration for the below variables
+  // because these  variables doesn't contribute for ui rendering
+  // and it is not necessary for react to know about these variable state change.
+  const isTypingRef = useRef(false);
+  const timeoutRef = useRef();
+
+  // user is typing feature
+  useEffect(() => {
+    function userIsNotTyping() {
+      socket.emit("not typing...");
+      isTypingRef.current = false;
+    }
+
+    if (outgoing !== "") {
+      if (isTypingRef.current === false) {
+        isTypingRef.current = true;
+        console.log("typing");
+        socket.emit("typing...", (error) => {
+          console.log(error);
+        });
+        timeoutRef.current = setTimeout(userIsNotTyping, 1000);
+      } else {
+        // if user is still typing, keep resetting the time interval on every key press
+        console.log("clearing timeout in else", timeoutRef.current);
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(userIsNotTyping, 1000);
+        console.log("setting timeout in else", timeoutRef.current);
+      }
+    }
+    // eslint-disable-next-line
+  }, [outgoing, socket]);
 
   const sendMessage = (e) => {
     // event(e) is defaul augument if the function is invoked by an event
@@ -17,16 +48,7 @@ const Sendbox = ({ socket }) => {
   };
 
   return (
-    <form
-      onSubmit={sendMessage}
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        position: "relative",
-        bottom: "0",
-        width: "100%",
-      }}
-    >
+    <form onSubmit={sendMessage}>
       <input
         style={{ width: "100%" }}
         type="text"
