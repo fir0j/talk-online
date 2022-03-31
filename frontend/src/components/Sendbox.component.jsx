@@ -25,10 +25,8 @@ const Sendbox = ({ socket }) => {
         timeoutRef.current = setTimeout(userIsNotTyping, 1000);
       } else {
         // if user is still typing, keep resetting the time interval on every key press
-        console.log("clearing timeout in else", timeoutRef.current);
         clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(userIsNotTyping, 1000);
-        console.log("setting timeout in else", timeoutRef.current);
       }
     }
     // eslint-disable-next-line
@@ -42,6 +40,7 @@ const Sendbox = ({ socket }) => {
         console.log(error);
       });
     }
+
     if (outgoing !== "") {
       setOutgoing("");
     }

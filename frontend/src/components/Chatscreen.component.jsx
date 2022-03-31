@@ -29,7 +29,7 @@ function Chatscreen({
       setStatus("online");
     }
     return () => {
-      socket.emit("disconnect");
+      socket.emit("disconnect", { name, room });
       socket.off();
     };
   }, [ENDPOINT]);
@@ -42,23 +42,25 @@ function Chatscreen({
       console.log(error);
     });
 
-    socket.on("welcome", (welcomePayload) => {
-      setIncoming(welcomePayload);
+    socket.on("welcome", (payload) => {
+      setIncoming(payload);
     });
-    socket.on("byebye", (byebyePayload) => {
-      setIncoming(byebyePayload);
+
+    socket.on("byebye", (payload) => {
+      setIncoming(payload);
     });
-    socket.on("roomMembers", (roomMembersPayload) => {
-      setOnlineUsers(roomMembersPayload.users);
-      console.log(roomMembersPayload.users);
+
+    socket.on("roomMembers", (payload) => {
+      console.log("got new room members", payload);
+      setOnlineUsers(payload.users);
     });
 
     // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
-    socket.on("typing...", (typingPayload) => {
-      setStatus(typingPayload.notification);
+    socket.on("typing...", (payload) => {
+      setStatus(payload.notification);
     });
 
     socket.on("not typing...", () => {
@@ -97,11 +99,13 @@ function Chatscreen({
   useEffect(scrollToBottom, [incomings]);
 
   const logout = () => {
+    socket.emit("logout", { name, room });
     setName("");
     setRoom("");
     setEmail("");
     setLoginStatus(false);
     setIncomings([]);
+
     return <Redirect to="/signin" />;
   };
 
@@ -112,8 +116,8 @@ function Chatscreen({
           <div>Group Members</div>
           <div>Online ({onlineUsers.length})</div>
           <ul>
-            {onlineUsers.map((user) => {
-              return <li>{user.name}</li>;
+            {onlineUsers.map((user, pos) => {
+              return <li key={pos}>{user.name}</li>;
             })}
           </ul>
         </div>

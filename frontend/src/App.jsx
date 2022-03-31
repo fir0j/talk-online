@@ -10,7 +10,7 @@ import Signin from "./components/Signin.component.jsx";
 
 const App = () => {
   const [name, setName] = useState("");
-  const [room, setRoom] = useState("web");
+  const [room, setRoom] = useState("kyc");
   const [email, setEmail] = useState("user@gmail.com");
   const [loginStatus, setLoginStatus] = useState(false);
 
